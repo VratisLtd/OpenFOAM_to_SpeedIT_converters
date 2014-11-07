@@ -1,0 +1,13 @@
+pisoFoam_to_speedit.C
+../common/of2speedit.C
+../common/of2speedit_boundary.C
+../common/of2speedit_utils.C
+../common/of2speedit_field_internals.C
+../common/of2speedit_mesh.C
+../common/of2speedit_io.C
+../common/of2speedit_settings.C
+../common/of2speedit_error.C
+../common/of2speedit_timevarying_bc.C
+
+
+EXE = $(FOAM_USER_APPBIN)/pisoFoam_to_speedit
