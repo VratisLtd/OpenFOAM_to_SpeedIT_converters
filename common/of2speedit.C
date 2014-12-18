@@ -232,9 +232,16 @@ save_mesh(
         save_vec ( file, internal_values( mesh.Sf() )                            , IFACE_AREA_VECTORS_HEADER   ) ;
         save_vec ( file, mesh.weights()    .cdata(), mesh.weights()    .size()   , IFACE_WEIGHTS_HEADER        ) ;
         save_vec ( file, mesh.deltaCoeffs().cdata(), mesh.deltaCoeffs().size()   , IFACE_DELTA_COEFFS_HEADER   ) ;
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
         if (false == mesh.orthogonal()) {
             save_vec( file, internal_values( mesh.correctionVectors() )            , IFACE_CORRECTION_VEC_HEADER ) ;
         } ;
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if (false == mesh.checkFaceOrthogonality()) {
+            save_vec( file, internal_values( mesh.nonOrthCorrectionVectors() )            , IFACE_CORRECTION_VEC_HEADER ) ;
+        } ;
+#endif
         save_vec( file, mesh.owner()    .cdata()   , mesh.owner()    .size()     , IFACE_OWNERS_HEADER         ) ;
         save_vec( file, mesh.neighbour().cdata()   , mesh.neighbour().size()     , IFACE_NEIGHBOURS_HEADER     ) ;
 
@@ -242,8 +249,11 @@ save_mesh(
         save_vec  ( file, boundary_values( mesh.Sf()               , true ).vals , BFACE_AREA_VECTORS_HEADER   ) ;
         save_vec  ( file, boundary_values( mesh.weights()          , true ).vals , BFACE_WEIGHTS_HEADER        ) ;
         save_vec  ( file, boundary_values( mesh.deltaCoeffs()      , true ).vals , BFACE_DELTA_COEFFS_HEADER   ) ;
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
         if (false == mesh.orthogonal()) {
 
+            // Pośredni test, czy są jakieś sciany typu "coupled". Obsługa ścian typu "coupled"
+            // wymaga istotnych dodatków do kodu solwera.
             for (int i=0 ; i < mesh.correctionVectors().boundaryField().size() ; i++)
                 for (int j=0 ; j < mesh.correctionVectors().boundaryField()[i].size() ; j++)
                 {
@@ -257,6 +267,26 @@ save_mesh(
 
          save_vec ( file, boundary_values( mesh.correctionVectors(), true ).vals , BFACE_CORRECTION_VEC_HEADER ) ;
         } ;
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if (false == mesh.checkFaceOrthogonality()) {
+
+            // Pośredni test, czy są jakieś sciany typu "coupled". Obsługa ścian typu "coupled"
+            // wymaga istotnych dodatków do kodu solwera.
+            for (int i=0 ; i < mesh.nonOrthCorrectionVectors().boundaryField().size() ; i++)
+                for (int j=0 ; j < mesh.nonOrthCorrectionVectors().boundaryField()[i].size() ; j++)
+                {
+                    if (
+                                0 != mesh.nonOrthCorrectionVectors().boundaryField()[i][j].x() ||
+                                0 != mesh.nonOrthCorrectionVectors().boundaryField()[i][j].y() ||
+                                0 != mesh.nonOrthCorrectionVectors().boundaryField()[i][j].z()
+                         )
+                        throw std::string("boundary correction vectors different than 0 are not supported - do you try to use \"coupled\" boundary faces ?") ;
+                } ;
+
+         save_vec ( file, boundary_values( mesh.nonOrthCorrectionVectors(), true ).vals , BFACE_CORRECTION_VEC_HEADER ) ;
+        } ;
+#endif
         save_vec  ( file, boundary_owners( mesh )                                , BFACE_OWNERS_HEADER         ) ;
         save_vec  ( file, bfaces_reorder_table( mesh )                           , BFACE_REORDER_TABLE_HEADER  ) ;
 

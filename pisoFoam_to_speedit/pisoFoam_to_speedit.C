@@ -21,9 +21,20 @@ License
 #include "wallDist.H"
 #include "nearWallDist.H"
 #include "of2speedit.H"
+#include "of2speedit_divSchemes.H"
 
 #include "singlePhaseTransportModel.H"
 #include "turbulenceModel.H"
+
+#ifndef OF_VERSION
+    #error "Undefined OpenFOAM version"
+#endif
+
+#if 1 == OF_VERSION || 2 == OF_VERSION
+//	#warning "OpenFOAM version OK"
+#else
+    #error "Unsupported OpenFOAM version"
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -192,23 +203,45 @@ int main(int argc, char *argv[])
 		setting_name(file, SETTING_N_PISO_CORR_ITER  ) << nCorr        << "\n" ; 
 		setting_name(file, SETTING_N_NONRTH_CORR_ITER) << nNonOrthCorr << "\n" ;
 
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
         if (U.mesh().relax(U.name()))
         {
             setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().relaxationFactor(U.name()) << "\n" ;
         }
         if (k.mesh().relax(k.name()))
         {
-            setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().relaxationFactor(k.name()) << "\n" ;
+             setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().relaxationFactor(k.name()) << "\n" ;
         }
         if (omega.mesh().relax(omega.name()))
         {
             setting_name(file, SETTING_OMEGA_RELAXATION_FACTOR) << omega.mesh().relaxationFactor(omega.name()) << "\n" ;
         }
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if (U.mesh().relaxEquation(U.name()))
+        {
+            setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().equationRelaxationFactor(U.name()) << "\n" ;
+        }
+        if (k.mesh().relaxEquation(k.name()))
+        {
+             setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().equationRelaxationFactor(k.name()) << "\n" ;
+        }
+        if (omega.mesh().relaxEquation(omega.name()))
+        {
+            setting_name(file, SETTING_OMEGA_RELAXATION_FACTOR) << omega.mesh().equationRelaxationFactor(omega.name()) << "\n" ;
+        }
+#endif
+
+        divSchemeSetting(file, "div(phi,U)",                   SETTING_DIV_PHIU,     mesh);
+        divSchemeSetting(file, "div(phi,k)",                   SETTING_DIV_PHIK,     mesh);
+        divSchemeSetting(file, "div(phi,omega)",               SETTING_DIV_PHIOMEGA, mesh);
+        divSchemeSetting(file, "div((nuEff*dev(T(grad(U)))))", SETTING_DIV_DEV_U,    mesh);
+
 
 
         dictionary kOmegaSSTCoeffsDict
         (
-         RASProperties.subDict("kOmegaSSTCoeffs")
+         RASProperties.subOrEmptyDict("kOmegaSSTCoeffs")
         );
 
 

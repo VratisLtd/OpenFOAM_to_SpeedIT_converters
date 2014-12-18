@@ -281,8 +281,6 @@ boundary_values ( const TField & field, bool values_only)
         SetZeroHelper<typename TField::value_type>::set()
     );
 
-    //TField rVField(temp);
-
     for (int z=0 ; z < field.boundaryField().size() ; z++) {
 
         if (field.boundaryField()[z].type() == "inletOutlet")
@@ -290,13 +288,13 @@ boundary_values ( const TField & field, bool values_only)
             inletOutletFvPatchField<typename TField::value_type>& kpatch = (inletOutletFvPatchField<typename TField::value_type>&)(field.boundaryField()[z]);
             rVField.boundaryField()[z] = kpatch.refValue();
         }
-//        else
-//        {
-//            rVField.boundaryField()[z] = SetZeroHelper<typename TField::value_type>::set();
+        else if (isScalarField<typename TField::value_type>::value && field.boundaryField()[z].type() == "totalPressure")
+        {
+            cout << "inside tP" << endl;
+            NewHelper<typename TField::value_type, TField>::run(field, rVField, z);
 
-//            //typedef typename TField::value_type myType;//defaultVal;
-////            rVField.boundaryField()[z] = myType::zero;//defaultVal;
-//        }
+        }
+
 
     }
 

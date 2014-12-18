@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "inletOutletFvPatchField.H"
+#include "totalPressureFvPatchScalarField.H"
 
 
 class BFaceValues {
@@ -76,5 +77,41 @@ struct SetZeroHelper<vector>
         return vector(0, 0, 0);
     }
 };
+
+template<typename VAL_TYPE, typename TYPE>
+struct NewHelper{};
+
+template<typename TYPE>
+struct NewHelper<scalar, TYPE>
+{
+    static void run(const TYPE& field, TYPE& rVField, int z)
+    {
+        totalPressureFvPatchScalarField& kpatch = (totalPressureFvPatchScalarField&)(field.boundaryField()[z]);
+        rVField.boundaryField()[z] = kpatch.p0();
+        cout << "scalarField\n";
+    }
+};
+
+template<typename TYPE>
+struct NewHelper<vector, TYPE>
+{
+    static void run(const TYPE& val, TYPE& rVField, int z)
+    {
+
+    }
+};
+
+template<class TField>
+struct isScalarField
+{
+    static const bool value = false;
+};
+
+template<>
+struct isScalarField< scalar  >
+{
+    static const bool value = true;
+};
+
 
 #endif

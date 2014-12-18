@@ -21,10 +21,26 @@ License
 #include "wallDist.H"
 #include "nearWallDist.H"
 #include "of2speedit.H"
+#include "of2speedit_divSchemes.H"
 
 #include "singlePhaseTransportModel.H"
 #include "turbulenceModel.H"
 #include "simpleControl.H"
+
+#ifndef OF_VERSION
+	#error "Undefined OpenFOAM version"
+#endif
+
+#if 1 == OF_VERSION || 2 == OF_VERSION
+//	#warning "OpenFOAM version OK"
+#else
+	#error "Unsupported OpenFOAM version"
+#endif
+
+#if 2 == OF_VERSION
+    #include "simpleControl.H"
+#endif
+
 
 int main(int argc, char *argv[])
 {
@@ -179,7 +195,12 @@ int main(int argc, char *argv[])
 		scalar pRefValue = 0.0;
         setRefCell(p, mesh.solutionDict().subDict("SIMPLE"), pRefCell, pRefValue);
 
+#if 2 == OF_VERSION
         simpleControl simple(mesh);
+#endif
+#if 1 == OF_VERSION
+            #include "readSIMPLEControls.H"
+#endif
 
 		Info << "Saving settings\n" ;
 		std::string filename = std::string(dir_path) + "/" + FILE_NAME_SETTINGS ; 
@@ -187,9 +208,17 @@ int main(int argc, char *argv[])
 
         SAVE_SETTINGS_TURB( file, std::string( SOLVER_SIMPLE_TURBULENCE ) ) ;
 
+        setting_name(file, SETTING_N_NONRTH_CORR_ITER) ;
 
-        setting_name(file, SETTING_N_NONRTH_CORR_ITER) << simple.nNonOrthCorr() << "\n" ;
+#if 1 == OF_VERSION
+        file << nNonOrthCorr << "\n" ;
+#endif
+#if 2 == OF_VERSION
+        file << simple.nNonOrthCorr() << "\n" ;
+#endif
 
+
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
         if (U.mesh().relax(U.name()))
         {
             setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().relaxationFactor(U.name()) << "\n" ;
@@ -201,12 +230,39 @@ int main(int argc, char *argv[])
 
         if (k.mesh().relax(k.name()))
         {
-            setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().relaxationFactor(k.name()) << "\n" ;
+             setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().relaxationFactor(k.name()) << "\n" ;
         }
         if (omega.mesh().relax(omega.name()))
         {
             setting_name(file, SETTING_OMEGA_RELAXATION_FACTOR) << omega.mesh().relaxationFactor(omega.name()) << "\n" ;
         }
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if (U.mesh().relaxEquation(U.name()))
+        {
+            setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().equationRelaxationFactor(U.name()) << "\n" ;
+        }
+        if (p.mesh().relaxField(p.name()))
+        {
+            setting_name(file, SETTING_P_RELAXATION_FACTOR) << p.mesh().fieldRelaxationFactor(p.name()) << "\n" ;
+        }
+
+        if (k.mesh().relaxEquation(k.name()))
+        {
+             setting_name(file, SETTING_K_RELAXATION_FACTOR) << k.mesh().equationRelaxationFactor(k.name()) << "\n" ;
+        }
+        if (omega.mesh().relaxEquation(omega.name()))
+        {
+            setting_name(file, SETTING_OMEGA_RELAXATION_FACTOR) << omega.mesh().equationRelaxationFactor(omega.name()) << "\n" ;
+        }
+#endif
+
+        divSchemeSetting(file, "div(phi,U)",                   SETTING_DIV_PHIU,     mesh);
+        divSchemeSetting(file, "div(phi,k)",                   SETTING_DIV_PHIK,     mesh);
+        divSchemeSetting(file, "div(phi,omega)",               SETTING_DIV_PHIOMEGA, mesh);
+        divSchemeSetting(file, "div((nuEff*dev(T(grad(U)))))", SETTING_DIV_DEV_U,    mesh);
+
+
 
         dictionary kOmegaSSTCoeffsDict
         (

@@ -109,6 +109,10 @@
 
 #define SETTING_YPLUSLAM              "yPlusLam_coefficient"
 
+#define SETTING_DIV_PHIU            "div_phiU_scheme"
+#define SETTING_DIV_PHIK            "div_phik_scheme"
+#define SETTING_DIV_PHIOMEGA        "div_phiomega_scheme"
+#define SETTING_DIV_DEV_U           "div_dev_U_scheme"
 
 ////////////////////////////////////////////////////////////////////////////////
 

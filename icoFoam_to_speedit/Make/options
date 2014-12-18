@@ -1,6 +1,6 @@
 EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
-                -I../common/ $(shell cat ../build_settings) -Xlinker --no-as-needed
+                -I../common/ $(shell cat ../build_settings) -DOF_VERSION=$(shell ../scripts/get_OF_version.sh) -DOF_VERSION_MINOR=$(shell ../scripts/get_OF_version_minor.sh) -Xlinker --no-as-needed
 
 EXE_LIBS = \
     -lfiniteVolume 

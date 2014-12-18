@@ -13,12 +13,22 @@ save_mesh_description( Foam::fvMesh & mesh, std::ostream & file )
 
 		file << "\n" ;
 
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
 		if ( mesh.orthogonal() ) 
 		{
 			file << "orthogonal\n" ;
 		} else {
 			file << "nonorthogonal\n" ;
 		} ;
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if ( mesh.checkFaceOrthogonality() )
+        {
+            file << "orthogonal\n" ;
+        } else {
+            file << "nonorthogonal\n" ;
+        } ;
+#endif
 
 		
     Vector<scalar>::labelType validComponents

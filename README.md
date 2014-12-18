@@ -19,7 +19,7 @@ OpenFOAM to SpeedIT FLOW converters can be downloaded from the [GitHub]
 
 # Requirements
 
-* OpenFOAM ver. 1.7.1 - 2.0.1
+* OpenFOAM ver. 1.7.1 - 2.3.0
 
 # Installation
 

@@ -30,6 +30,7 @@ License
 
 #include "fvCFD.H"
 #include "of2speedit.H"
+#include "of2speedit_divSchemes.H"
 #include <string>
 
 #if 2 == OF_VERSION
@@ -73,14 +74,29 @@ int main(int argc, char *argv[])
 #if 2 == OF_VERSION
 		file << simple.nNonOrthCorr() << "\n" ;
 #endif		
-		if (U.mesh().relax(U.name()))
-		{
-			setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().relaxationFactor(U.name()) << "\n" ;
-		}
-		if (p.mesh().relax(p.name()))
-		{
-			setting_name(file, SETTING_P_RELAXATION_FACTOR) << p.mesh().relaxationFactor(p.name()) << "\n" ; 
-		}		
+
+#if (2 == OF_VERSION && 1 > OF_VERSION_MINOR ) || 1 == OF_VERSION
+        if (U.mesh().relax(U.name()))
+        {
+            setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().relaxationFactor(U.name()) << "\n" ;
+        }
+        if (p.mesh().relax(p.name()))
+        {
+            setting_name(file, SETTING_P_RELAXATION_FACTOR) << p.mesh().relaxationFactor(p.name()) << "\n" ;
+        }
+#endif
+#if (2 == OF_VERSION && 1 <= OF_VERSION_MINOR )
+        if (U.mesh().relaxEquation(U.name()))
+        {
+            setting_name(file, SETTING_U_RELAXATION_FACTOR) << U.mesh().equationRelaxationFactor(U.name()) << "\n" ;
+        }
+        if (p.mesh().relaxField(p.name()))
+        {
+            setting_name(file, SETTING_P_RELAXATION_FACTOR) << p.mesh().fieldRelaxationFactor(p.name()) << "\n" ;
+        }
+#endif
+
+        divSchemeSetting(file, "div(phi,U)", SETTING_DIV_PHIU, mesh);		
 
 		Info << "Saving mesh in SpeedIT format\n" ;
 		save_mesh  (      mesh, dir_path) ;

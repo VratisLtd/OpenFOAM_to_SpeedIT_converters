@@ -19,6 +19,17 @@ License
 
 #include "fvCFD.H"
 #include "of2speedit.H"
+#include "of2speedit_divSchemes.H"
+
+#ifndef OF_VERSION
+    #error "Undefined OpenFOAM version"
+#endif
+
+#if 1 == OF_VERSION || 2 == OF_VERSION
+//	#warning "OpenFOAM version OK"
+#else
+    #error "Unsupported OpenFOAM version"
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -48,6 +59,8 @@ int main(int argc, char *argv[])
 		file << runTime.deltaT().value() << "\n" ;
 		setting_name(file, SETTING_N_PISO_CORR_ITER  ) << nCorr        << "\n" ; 
 		setting_name(file, SETTING_N_NONRTH_CORR_ITER) << nNonOrthCorr << "\n" ;
+		
+		divSchemeSetting(file, "div(phi,U)", SETTING_DIV_PHIU, mesh);
 
 		Info << "Saving mesh in SpeedIT format\n" ;
 		save_mesh  (      mesh, dir_path) ;
